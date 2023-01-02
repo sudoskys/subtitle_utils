@@ -1,6 +1,6 @@
 # subtitle_utils
 
-![cover](https://raw.githubusercontent.com/sudoskys/subtitle_utils/main/cover.png)
+![cover](https://raw.githubusercontent.com/sudoskys/subtitle_utils/main/cover.jpg)
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.7|8|9|10-green" alt="Python" >
