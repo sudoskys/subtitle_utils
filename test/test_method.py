@@ -3,7 +3,10 @@
 # @FileName: test.py
 # @Software: PyCharm
 # @Github    ：sudoskys
-from src import subtitle_utils
+import sys
+
+sys.path.append("..")
+import subtitle_utils
 
 
 def get_test_subtitle(pre, aft):

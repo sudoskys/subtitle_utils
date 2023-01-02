@@ -5,7 +5,7 @@ description = "Subtilte Conversion utils - ass2srt vtt2bcc srt2bcc ass2bcc and m
 authors = ["sudoskys <coldlando@hotmail.com>"]
 license = "GPL-2.0-or-later"
 readme = "README.md"
-packages = [{include = "subtitle_utils",from="src"}]
+packages = [{include = "subtitle_utils"}]
 repository = "https://github.com/sudoskys/subtitle_utils"
 
 [tool.poetry.dependencies]
