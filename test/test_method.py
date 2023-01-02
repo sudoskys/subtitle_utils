@@ -11,9 +11,9 @@ import subtitle_utils
 
 
 def get_test_subtitle(pre, aft):
-    with open(f"test/test.{pre}", "r") as f:
+    with open(f"test.{pre}", "r") as f:
         pre_content = f.read()
-    with open(f"test/test.{aft}", "r") as f:
+    with open(f"test.{aft}", "r") as f:
         aft_content = f.read()
     return pre_content, aft_content
 
