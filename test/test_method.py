@@ -6,6 +6,7 @@
 import sys
 
 sys.path.append("..")
+
 import subtitle_utils
 
 
