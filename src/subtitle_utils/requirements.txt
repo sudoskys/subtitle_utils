@@ -1,0 +1,7 @@
+pathlib
+loguru
+pysrt
+pyvtt
+chardet
+pyasstosrt
+pydantic
