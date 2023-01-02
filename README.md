@@ -1,6 +1,6 @@
 # subtitle_utils
 
-![cover](https://raw.githubusercontent.com/KimmyXYC/Subtitle-Conversion-TGBot/main/Data/cover.jpg)
+![cover](https://repository-images.githubusercontent.com/584253498/09efec50-21c6-4eac-b9cf-e41d251c2e60)
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.7|8|9|10-green" alt="Python" >
