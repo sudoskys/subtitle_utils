@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "subtitle-utils"
-version = "0.1.1"
+version = "0.1.2"
 description = "Subtilte Conversion utils - ass2srt vtt2bcc srt2bcc ass2bcc and more"
 authors = ["sudoskys <coldlando@hotmail.com>"]
 license = "LGPL-3.0-or-later"
