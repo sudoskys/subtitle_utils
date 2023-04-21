@@ -60,6 +60,21 @@ class _Converter(object):
         result = AssConvert().srt2ass(strs=strs, header=header)
         return result
 
+    def bcc2srt(self,
+                strs: Union[str],
+                **kwargs
+                ) -> str:
+        result = BccConvert().bcc2srt(files=strs)
+        return result
+
+    def bcc2ass(self,
+                strs: Union[str],
+                **kwargs
+                ) -> str:
+        result = BccConvert().bcc2srt(files=strs)
+        result = AssConvert().srt2ass(strs=result)
+        return result
+
 
 class Returner(BaseModel):
     status: bool = False
@@ -74,6 +89,7 @@ __kira = _Converter()
 _to_table = {
     "2srt": {
         "ass": __kira.ass2srt,
+        "bcc": __kira.bcc2srt,
     },
     "2bcc": {
         "vtt": __kira.vtt2bcc,
@@ -82,6 +98,7 @@ _to_table = {
     },
     "2ass": {
         "srt": __kira.srt2ass,
+        "bcc": __kira.bcc2ass,
     },
 }
 
