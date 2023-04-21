@@ -169,6 +169,9 @@ class BccConvert(object):
         _fix = self.merge_timeline(_origin)
         return _fix
 
+    def time2str(self, time: float):
+        return datetime.utcfromtimestamp(time).strftime("%H:%M:%S,%f")[:-3]
+
     def srt2bcc(self, files: Union[str], about: str = None):
         """
         srt2bcc 将 srt 转换为 bcc B站字幕格式
@@ -189,6 +192,29 @@ class BccConvert(object):
             "body": body
         }
         return bcc if subs else {}
+
+    def bcc2srt(self, files: Union[str]):
+        """
+        bcc2srt 将 bcc 转换为 srt 字幕格式
+        :return:
+        """
+        path = files if files else ""
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                subs = json.load(f)
+        else:
+            subs = json.loads(path)
+        srt = ""
+        count = 0
+        for single_str in subs["body"]:
+            count += 1
+            content_str = single_str['content']
+            from_str = single_str['from']
+            to_str = single_str['to']
+            srt += f"{count}\n"
+            srt += f"{self.time2str(from_str)} --> {self.time2str(to_str)}\n"
+            srt += f"{content_str}\n\n"
+        return srt[:-1] if subs else ""
 
     def vtt2bcc(self, files, threshold=0.1, word=True, about: str = None):
         path = files if files else ""
