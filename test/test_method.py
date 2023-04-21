@@ -37,7 +37,7 @@ class TestClass:
         assert type(method) == list
 
     def test_module(self):
-        names = ["srt2bcc"]
+        names = ["bcc2srt"]
         for name in names:
             pre = name.split("2")[0]
             aft = name.split("2")[1]
