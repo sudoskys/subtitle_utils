@@ -1,16 +1,21 @@
 # subtitle_utils
 
-![cover](https://raw.githubusercontent.com/sudoskys/subtitle_utils/main/cover.jpg)
+![cover](https://raw.githubusercontent.com/sudoskys/subtitle_utils/main/src/cover.jpg)
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Python-3.7|8|9|10-green" alt="Python" >
+  <img src="https://img.shields.io/badge/Python-3.8|9|10|11-green" alt="Python" >
+  <img src="https://img.shields.io/pypi/dm/subtitle_utils.svg" alt="Download">
 </p>
 
 Subtilte Conversion utils - ass2srt vtt2bcc srt2bcc ass2bcc and more
 
-`pip install -U subtitle_utils`
+## Install
 
-## 使用
+```
+pip install -U subtitle_utils
+```
+
+## Usage
 
 ```python
 import subtitle_utils
