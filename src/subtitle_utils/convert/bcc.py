@@ -7,8 +7,6 @@ from datetime import datetime
 from io import TextIOBase
 from typing import Union, IO
 
-from loguru import logger
-
 from ..parse import VttParser, BccParser, SrtParse
 from ..schema import Convert
 
@@ -255,8 +253,7 @@ class BccConvert(Convert):
                                 }
                             )
                         start = sec
-                except Exception as e:
-                    logger.trace(e)
+                except Exception:
                     final_text = sub.text.split("\n")[-1]
                     if caption_list and caption_list[-1]["content"] == final_text:
                         caption_list[-1].update(
