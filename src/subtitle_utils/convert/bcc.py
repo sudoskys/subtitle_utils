@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
-# @Time    : 12/30/22 2:39 PM
-# @FileName: BccConvert.py
-# @Software: PyCharm
-# @Github    ：sudoskys
+# @Author  : sudoskys,智伤帝
+# @File    : bcc.py
 
 import re
-import os
-import json
-import pyvtt
-import pysrt
-
-from typing import Union
 from datetime import datetime
+from io import TextIOBase
+from typing import Union, IO
+
 from loguru import logger
 
+from ..parse import VttParser, BccParser, SrtParse
+from ..schema import Convert
 
 #####
 # BCC2SRT
@@ -21,51 +18,29 @@ from loguru import logger
 # VTT2BCC
 #####
 
-
-class BccParser(object):
-    def __init__(self):
-        pass
-
-    def _parse(self, content: str):
-        try:
-            return json.loads(content)
-        except Exception as e:
-            raise Exception(e)
-
-    def parseFile(self, files):
-        path = files if files else ""
-        if not os.path.exists(path):
-            return
-        with open(files, "r") as f:
-            return self._parse(f.read())
-
-    def parseStr(self, files):
-        strs = files if files else ""
-        return self._parse(strs)
+item = {
+    "from": 0,
+    "to": 0,
+    "location": 2,
+    "content": "",
+}
 
 
-class BccConvert(object):
-    def __init__(self):
-        self.item = {
-            "from": 0,
-            "to": 0,
-            "location": 2,
-            "content": "",
-        }
+class BccConvert(Convert):
 
-    def merge_timeline(self, time_line: list):
+    @staticmethod
+    def _merge_timeline(time_line: list):
         """
         防止时间码重合，压扁时间轴
-        :param time_line:
-        :param additive: 附加字幕
-        :return:
+        :param time_line: 时间轴
+        :return: 压扁后的时间轴
         """
         # 制作爆破点
         _time_dot = {}
-        for item in time_line:
-            _start = item["from"]
-            _end = item["to"]
-            _content = item["content"]
+        for items in time_line:
+            _start = items["from"]
+            _end = items["to"]
+            _content = items["content"]
             _uid = _start + _end
             import uuid
             uid1 = uuid.uuid1()
@@ -75,11 +50,11 @@ class BccConvert(object):
             _time_dot[uid2.hex] = {"time": _end, "type": "end", "content": _content, "group": uid}
 
         # 查找当前点的字幕。
-        def sub_title_now(dot: float):
+        def sub_title_now(dot_: float):
             sub_title_n = []
             rev = False
             for it in time_line:
-                if it["from"] <= dot < it["to"]:
+                if it["from"] <= dot_ < it["to"]:
                     if "字幕" in it["content"] and len(it["content"]) > 7:
                         rev = True
                     sub_title_n.append(it["content"])
@@ -148,7 +123,14 @@ class BccConvert(object):
 
         return merge_large(_result)
 
-    def process_body(self, subs, about: str = None):
+    def _process_body(self, subs, about: str = None):
+        """
+        处理字幕内容
+        :param subs: 字幕列表
+        :param about:  关于字幕
+        :return:  处理后的字幕内容
+        """
+
         _origin = []
         if about:
             _origin.append({
@@ -166,23 +148,21 @@ class BccConvert(object):
             }
             for sub in subs
         ])
-        _fix = self.merge_timeline(_origin)
+        _fix = self._merge_timeline(_origin)
         return _fix
 
-    def time2str(self, time: float):
+    @staticmethod
+    def _time2str(time: float):
         return datetime.utcfromtimestamp(time).strftime("%H:%M:%S,%f")[:-3]
 
-    def srt2bcc(self, files: Union[str], about: str = None):
+    def srt2bcc(self, content: Union[str, IO, TextIOBase], about: str = None):
         """
         srt2bcc 将 srt 转换为 bcc B站字幕格式
+        :param content: srt format
         :return:
         """
-        path = files if files else ""
-        if os.path.exists(path):
-            subs = pysrt.open(path=files)
-        else:
-            subs = pysrt.from_string(source=files)
-        body = self.process_body(subs, about=about)
+        subs = SrtParse().parse(content)
+        body = self._process_body(subs, about=about)
         bcc = {
             "font_size": 0.4,
             "font_color": "#FFFFFF",
@@ -193,17 +173,13 @@ class BccConvert(object):
         }
         return bcc if subs else {}
 
-    def bcc2srt(self, files: Union[str]):
+    def bcc2srt(self, content: Union[str, IO, TextIOBase]):
         """
         bcc2srt 将 bcc 转换为 srt 字幕格式
+        :param content: bcc format
         :return:
         """
-        path = files if files else ""
-        if os.path.exists(path):
-            with open(path, "r", encoding="utf-8") as f:
-                subs = json.load(f)
-        else:
-            subs = json.loads(path)
+        subs = BccParser().parse(content)
         srt = ""
         count = 0
         for single_str in subs["body"]:
@@ -212,16 +188,20 @@ class BccConvert(object):
             from_str = single_str['from']
             to_str = single_str['to']
             srt += f"{count}\n"
-            srt += f"{self.time2str(from_str)} --> {self.time2str(to_str)}\n"
+            srt += f"{self._time2str(from_str)} --> {self._time2str(to_str)}\n"
             srt += f"{content_str}\n\n"
         return srt[:-1] if subs else ""
 
-    def vtt2bcc(self, files, threshold=0.1, word=True, about: str = None):
-        path = files if files else ""
-        if os.path.exists(path):
-            subs = pyvtt.open(path)
-        else:
-            subs = pyvtt.from_string(path)
+    def vtt2bcc(self, content: Union[str, IO, TextIOBase], threshold=0.1, word=True, about: str = None):
+        """
+        vtt2bcc 将 vtt 转换为 bcc B站字幕格式
+        :param content:  vtt format
+        :param threshold:  两个字幕之间的间隔时间
+        :param word:  是否按照断词模式分隔字幕
+        :param about:  关于字幕
+        :return:  bcc format
+        """
+        subs = VttParser().parse(content)
         # NOTE 按照 vtt 的断词模式分隔 bcc
         caption_list = []
         if not word:
@@ -275,7 +255,8 @@ class BccConvert(object):
                                 }
                             )
                         start = sec
-                except:
+                except Exception as e:
+                    logger.trace(e)
                     final_text = sub.text.split("\n")[-1]
                     if caption_list and caption_list[-1]["content"] == final_text:
                         caption_list[-1].update(
@@ -300,7 +281,7 @@ class BccConvert(object):
         # NOTE 避免超出视频长度
         last = caption_list[-1]
         last["to"] = last.get("from") + 0.1
-        body = self.process_body(caption_list, about=about)
+        body = self._process_body(caption_list, about=about)
         bcc = {
             "font_size": 0.4,
             "font_color": "#FFFFFF",
@@ -310,29 +291,3 @@ class BccConvert(object):
             "body": body,
         }
         return bcc if subs else {}
-
-
-"""
-# 部分原始代码协议:https://github.com/FXTD-ODYSSEY/bilibili-subtile-uploader/blob/main/LICENSE
-MIT License
-
-Copyright (c) 2020 智伤帝
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-"""

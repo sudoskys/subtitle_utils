@@ -1,19 +1,18 @@
 # -*- coding: utf-8 -*-
-# @Time    : 12/30/22 2:54 PM
-# @FileName: AssConverter.py
+# @Time    : 2024/1/18 下午6:05
+# @Author  : sudoskys
+# @File    : ass.py
 # @Software: PyCharm
-# @Github    ：sudoskys
-import re
-from pathlib import Path
+import tempfile
+from io import TextIOBase
+from typing import Union, IO
+
 from pyasstosrt import Subtitle
 
-from .utils import SrtParse
+from ..parse import SrtParse
+from ..schema import Convert
 
-
-class AssUtils(object):
-    @staticmethod
-    def defultHeader() -> str:
-        return """[V4+ Styles]
+ASS_HEADER = """[V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
 Style: Default,Arial,20,&H00FFFFFF,&HF0000000,&H00000000,&HF0000000,1,0,0,0,100,100,0,0.00,1,1,0,2,30,30,10,134
 
@@ -21,18 +20,24 @@ Style: Default,Arial,20,&H00FFFFFF,&HF0000000,&H00000000,&HF0000000,1,0,0,0,100,
 Format: Layer, Start, End, Style, Actor, MarginL, MarginR, MarginV, Effect, Text
 """
 
-    def ass_content(self, content, header: str) -> str:
+
+class AssConvert(Convert):
+    @staticmethod
+    def srt2ass(content: Union[str, IO, TextIOBase],
+                *,
+                header: str = None) -> str:
         """
-        字幕转换
-        :param timestamps: 时间轴
-        :param subtitles: 字幕
-        :param header: 头
-        :return: 合成字幕
+        Subtitle Converter
+        :param content: subtitle path or content
+        :param header: ASS HEADER (Style)
+        :return: processed subtitle
         """
-        subs = SrtParse().parse(strs=content)
+        assert isinstance(content, (str, IO, TextIOBase)), f"content must be str or IO but {type(content)}"
+        subs = SrtParse().parse(content=content)
         timestamps = [[str(sub.start), str(sub.end)] for sub in subs]
         subtitles = [sub.text for sub in subs]
-        header = header if header else AssUtils.defultHeader()
+        if header is None:
+            header = ASS_HEADER
         content = header + '\n'
         body = {
             'dialogue': 'Dialogue: ',
@@ -63,21 +68,22 @@ Format: Layer, Start, End, Style, Actor, MarginL, MarginR, MarginV, Effect, Text
             content += '\n'
         return content
 
-
-class AssConvert(object):
-
-    def ass2srt(self, files: str) -> str:
-        path = Path(files)
-        sub = Subtitle(path)
-        dialog = sub.export(output_dialogues=True)
-        _result = []
-        for dialogue in dialog:
-            _result.append(str(dialogue))
+    @staticmethod
+    def ass2srt(content: Union[str, IO, TextIOBase]) -> str:
+        assert isinstance(content, (str, IO)), "content must be str or IO"
+        # write to temp file
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", delete=True) as f:
+            if isinstance(content, str):
+                f.write(content)
+            else:
+                f.write(content.read())
+            f.seek(0)
+            _result = []
+            try:
+                sub = Subtitle(filepath=f.name)
+                dialog = sub.export(output_dialogues=True)
+                for dialogue in dialog:
+                    _result.append(str(dialogue))
+            finally:
+                f.close()
         return "".join(_result)
-
-    def srt2ass(self, strs: str, header: str = "") -> str:
-        content = AssUtils().ass_content(content=strs, header=header)
-        return content
-
-# res = AssConvert().ass2srt(files="../test/sub.ass")
-# print(res)
