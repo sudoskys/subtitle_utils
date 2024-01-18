@@ -4,6 +4,7 @@
 # @Software: PyCharm
 # @Github    ：sudoskys
 import json
+from io import TextIOBase
 from typing import Union, IO, Callable, Any
 
 from .convert.ass import AssConvert
@@ -12,21 +13,21 @@ from .convert.bcc import BccConvert
 FOOTNOTE = None
 
 
-def srt2bcc(content: Union[str, IO]
+def srt2bcc(content: Union[str, IO, TextIOBase]
             ) -> str:
     result = BccConvert().srt2bcc(content=content, about=FOOTNOTE)
     result = json.dumps(result, ensure_ascii=False, indent=None)
     return result
 
 
-def vtt2bcc(content: Union[str, IO]
+def vtt2bcc(content: Union[str, IO, TextIOBase]
             ) -> str:
     result = BccConvert().vtt2bcc(content=content, about=FOOTNOTE)
     result = json.dumps(result, ensure_ascii=False, indent=None)
     return result
 
 
-def ass2bcc(content: Union[str, IO]
+def ass2bcc(content: Union[str, IO, TextIOBase]
             ) -> str:
     ass_result = AssConvert().ass2srt(content=content)
     result = BccConvert().srt2bcc(content=ass_result, about=FOOTNOTE)
@@ -34,7 +35,7 @@ def ass2bcc(content: Union[str, IO]
     return result
 
 
-def ass2srt(content: Union[str, IO]
+def ass2srt(content: Union[str, IO, TextIOBase]
             ) -> str:
     """
     :param content:
@@ -44,7 +45,7 @@ def ass2srt(content: Union[str, IO]
     return result
 
 
-def srt2ass(content: Union[str, IO],
+def srt2ass(content: Union[str, IO, TextIOBase],
             *,
             header: str = None
             ) -> str:
@@ -57,13 +58,13 @@ def srt2ass(content: Union[str, IO],
     return result
 
 
-def bcc2srt(content: Union[str, IO],
+def bcc2srt(content: Union[str, IO, TextIOBase],
             ) -> str:
     result = BccConvert().bcc2srt(content=content)
     return result
 
 
-def bcc2ass(content: Union[str, IO]
+def bcc2ass(content: Union[str, IO, TextIOBase]
             ) -> str:
     bcc_result = BccConvert().bcc2srt(content=content)
     result = AssConvert().srt2ass(content=bcc_result)

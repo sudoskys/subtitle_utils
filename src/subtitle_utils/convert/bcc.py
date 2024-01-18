@@ -4,6 +4,7 @@
 
 import re
 from datetime import datetime
+from io import TextIOBase
 from typing import Union, IO
 
 from loguru import logger
@@ -154,7 +155,7 @@ class BccConvert(Convert):
     def _time2str(time: float):
         return datetime.utcfromtimestamp(time).strftime("%H:%M:%S,%f")[:-3]
 
-    def srt2bcc(self, content: Union[str, IO], about: str = None):
+    def srt2bcc(self, content: Union[str, IO, TextIOBase], about: str = None):
         """
         srt2bcc 将 srt 转换为 bcc B站字幕格式
         :param content: srt format
@@ -172,7 +173,7 @@ class BccConvert(Convert):
         }
         return bcc if subs else {}
 
-    def bcc2srt(self, content: Union[str, IO]):
+    def bcc2srt(self, content: Union[str, IO, TextIOBase]):
         """
         bcc2srt 将 bcc 转换为 srt 字幕格式
         :param content: bcc format
@@ -191,7 +192,7 @@ class BccConvert(Convert):
             srt += f"{content_str}\n\n"
         return srt[:-1] if subs else ""
 
-    def vtt2bcc(self, content: Union[str, IO], threshold=0.1, word=True, about: str = None):
+    def vtt2bcc(self, content: Union[str, IO, TextIOBase], threshold=0.1, word=True, about: str = None):
         """
         vtt2bcc 将 vtt 转换为 bcc B站字幕格式
         :param content:  vtt format

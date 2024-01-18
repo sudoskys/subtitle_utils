@@ -4,6 +4,7 @@
 # @File    : ass.py
 # @Software: PyCharm
 import tempfile
+from io import TextIOBase
 from typing import Union, IO
 
 from pyasstosrt import Subtitle
@@ -22,7 +23,7 @@ Format: Layer, Start, End, Style, Actor, MarginL, MarginR, MarginV, Effect, Text
 
 class AssConvert(Convert):
     @staticmethod
-    def srt2ass(content: Union[str, IO],
+    def srt2ass(content: Union[str, IO, TextIOBase],
                 *,
                 header: str = None) -> str:
         """
@@ -31,7 +32,7 @@ class AssConvert(Convert):
         :param header: ASS HEADER (Style)
         :return: processed subtitle
         """
-        assert isinstance(content, (str, IO)), "content must be str or IO"
+        assert isinstance(content, (str, IO, TextIOBase)), f"content must be str or IO but {type(content)}"
         subs = SrtParse().parse(content=content)
         timestamps = [[str(sub.start), str(sub.end)] for sub in subs]
         subtitles = [sub.text for sub in subs]
@@ -68,18 +69,21 @@ class AssConvert(Convert):
         return content
 
     @staticmethod
-    def ass2srt(content: Union[str, IO]) -> str:
+    def ass2srt(content: Union[str, IO, TextIOBase]) -> str:
         assert isinstance(content, (str, IO)), "content must be str or IO"
         # write to temp file
-        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", delete=True) as f:
             if isinstance(content, str):
                 f.write(content)
             else:
                 f.write(content.read())
-            f.close()
-            sub = Subtitle(filepath=f.name)
-            dialog = sub.export(output_dialogues=True)
+            f.seek(0)
             _result = []
-            for dialogue in dialog:
-                _result.append(str(dialogue))
+            try:
+                sub = Subtitle(filepath=f.name)
+                dialog = sub.export(output_dialogues=True)
+                for dialogue in dialog:
+                    _result.append(str(dialogue))
+            finally:
+                f.close()
         return "".join(_result)

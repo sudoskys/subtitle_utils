@@ -7,6 +7,7 @@ import json
 import os
 import tempfile
 from abc import ABC
+from io import TextIOBase
 from typing import Union, IO
 
 import pysrt
@@ -20,20 +21,23 @@ class Parser(ABC):
     Base Parser
     """
 
-    def parse(self, content: Union[str, IO]):
+    def parse(self, content: Union[str, IO, TextIOBase]):
         raise NotImplementedError
 
 
 class SrtParse(Parser):
 
-    def parse(self, content: Union[str, IO]) -> SubRipFile:
+    def parse(self, content: Union[str, IO, TextIOBase]) -> SubRipFile:
         if isinstance(content, str):
             return pysrt.from_string(content)
         # write to temp file
         with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", delete=True) as f:
             f.write(content.read())
-            f.close()
-            return pysrt.open(f.name)
+            f.seek(0)
+            try:
+                return pysrt.open(path=f.name)
+            finally:
+                f.close()
 
 
 class BccParser(Parser):
@@ -56,7 +60,7 @@ class BccParser(Parser):
         strs = sentence if sentence else ""
         return self._parse(strs)
 
-    def parse(self, content: Union[str, IO]) -> dict:
+    def parse(self, content: Union[str, IO, TextIOBase]) -> dict:
         """
         Parse bcc
         :param content: str or IO
@@ -69,7 +73,7 @@ class BccParser(Parser):
 
 class VttParser(Parser):
 
-    def parse(self, content: Union[str, IO]) -> WebVTTFile:
+    def parse(self, content: Union[str, IO, TextIOBase]) -> WebVTTFile:
         """
         :param content:  str or IO
         :return:  pyvtt.WebVTTFile
@@ -79,5 +83,8 @@ class VttParser(Parser):
         # write to temp file
         with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", delete=True) as f:
             f.write(content.read())
-            f.close()
-            return pyvtt.open(f.name)
+            f.seek(0)
+            try:
+                return pyvtt.open(f.name)
+            finally:
+                f.close()
