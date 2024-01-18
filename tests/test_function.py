@@ -14,9 +14,9 @@ def test_show_available():
 
 
 def test_srt2bcc():
-    with open("test.bcc", "r") as f:
+    with open("tests/test.bcc", "r") as f:
         bcc_exp = f.read()
-    with open("test.srt", 'r') as file_io:
+    with open("tests/test.srt", 'r') as file_io:
         test_result = get_method(method="srt2bcc")(content=file_io)
         test_result = test_result.replace("\n", "")
         bcc_exp = bcc_exp.replace("\n", "")
