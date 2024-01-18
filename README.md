@@ -7,15 +7,15 @@
   <img src="https://img.shields.io/pypi/dm/subtitle_utils.svg" alt="Download">
 </p>
 
-Subtilte Conversion utils - ass2srt vtt2bcc srt2bcc ass2bcc and more
+Subtilte Conversion Utils - ass2srt vtt2bcc srt2bcc ass2bcc and more!
 
-## Install
+## Install 🥽
 
 ```
 pip install -U subtitle_utils
 ```
 
-## Usage
+## Usage ☕️
 
 ```python
 from subtitle_utils import get_method, show_available, srt2bcc
