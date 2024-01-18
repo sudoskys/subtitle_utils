@@ -4,4 +4,3 @@ pysrt
 pyvtt
 chardet
 pyasstosrt
-pydantic
